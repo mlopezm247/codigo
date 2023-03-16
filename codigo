@@ -1,0 +1,102 @@
+
+public class CustomModeBlock extends HorizontalDirectionalBlock {
+
+    //SHAPE
+    
+
+    
+    public static final DirectionProperty FACING = HORIZONTAL_FACING;
+
+    //NUEVO
+    public static final BooleanProperty BEING_PLACED = BooleanProperty.create("being_placed" );
+    //public static final EnumProperty<DoubleBlockHalf> HALF = BlockStateProperties.DOUBLE_BLOCK_HALF;
+    //LAS PROPIEDADES DEL BLOQUE
+    public CustomModeBlock(Properties properties) {
+        super(properties);
+
+    }
+
+
+
+
+
+//FACING
+
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(HORIZONTAL_FACING);
+        builder.add(CustomModeBlock.BEING_PLACED);
+
+        //builder.add(FACING);
+        //builder.add(HALF);
+    }
+
+
+
+    //NUEVO
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext pContext) {
+
+        Direction direction = pContext.getHorizontalDirection().getOpposite();
+        BlockPos blockPos = pContext.getClickedPos();
+        BlockPos blockPos1 = blockPos.relative(direction);
+        Level level = pContext.getLevel();
+        return level.getBlockState(blockPos1).canBeReplaced(pContext) && level.getWorldBorder().isWithinBounds(blockPos1) ? this.defaultBlockState().setValue(FACING, direction) : null;
+
+
+    }
+    @Override
+    public void setPlacedBy(Level pLevel, BlockPos pPos, BlockState pState, LivingEntity pEntity, ItemStack pStack) {
+
+
+
+        BlockPos blockPos = pPos.relative(pState.getValue(FACING).getCounterClockWise());
+        pLevel.setBlock(blockPos, pState, 3);
+    }
+
+    @Override
+    public boolean canSurvive(BlockState pState, LevelReader pReader, BlockPos pPos) {
+
+        if (pState.getValue(BEING_PLACED) == true){
+            return true;
+        }
+
+        if (pReader.getBlockState(pPos.relative(FACING).getBlock().equals(getStateForPlacement))){
+           return true;
+        }
+        return false;
+      
+
+    }
+   
+   
+    @Override
+    public BlockState rotate(BlockState pState, Rotation pRotation) {
+        return pState.setValue(FACING, pRotation.rotate(pState.getValue(FACING)));
+    }
+
+    @Override
+    public BlockState mirror(BlockState pState, Mirror pMirror) {
+        return pState.rotate(pMirror.getRotation(pState.getValue(FACING)));
+    }
+
+
+
+    //SHAPE
+
+    @Override
+    public VoxelShape getShape(BlockState pState, BlockGetter pLevel, BlockPos pPos, CollisionContext pContext) {
+        switch (pState.getValue(FACING)){
+            case NORTH:
+                return SHAPE_N;
+            case SOUTH:
+                return SHAPE_S;
+            case EAST:
+                return SHAPE_E;
+            case WEST:
+                return SHAPE_W;
+            default:
+                return SHAPE_N;
+        }
+    }
